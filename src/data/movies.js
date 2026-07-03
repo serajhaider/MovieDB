@@ -81,7 +81,7 @@ const movies = [
       "Robert De Niro",
       "Zazie Beetz",
     ],
-    poster: "/posters/joker.jpg",
+    poster: "/posters/jocker.jpg",
   },
 ];
 
