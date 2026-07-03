@@ -1,9 +1,9 @@
 function Footer() {
   return (
-    <footer className="bg-slate-900 text-white py-8 mt-20">
-      <div className="max-w-[1700px] mx-auto text-center">
-        © 2026 MovieDB. All Rights Reserved.
-      </div>
+    <footer className="footer">
+      <div className="footer-brand">🎬 Movie Database</div>
+      <p className="footer-sub">React + Vite + Tailwind CSS</p>
+      <p className="footer-copy">© 2026 Movie Database. All rights reserved.</p>
     </footer>
   );
 }

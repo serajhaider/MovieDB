@@ -1,19 +1,41 @@
-import movies from "../data/movies";
 import MovieCard from "./MovieCard";
 
-function MovieGrid() {
-  return (
-    <section className="max-w-[1700px] mx-auto px-10 py-12">
-      <h1 className="text-6xl font-bold text-center mb-14">
-        Popular Movies
-      </h1>
+function MovieGrid({ movies, selectMovie, watchlist, toggleWatchlist, activeTab, selectedMovieId }) {
+  const title = activeTab === "watchlist" ? "Your Watchlist" : "Popular Movies";
 
-      <div className="flex justify-center gap-8 flex-wrap">
-        {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
-        ))}
+  return (
+    <div>
+      <div className="grid-panel-header">
+        <div className="panel-accent"></div>
+        <h2>{title}</h2>
       </div>
-    </section>
+
+      {movies.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">
+            {activeTab === "watchlist" ? "❤️" : "🎬"}
+          </div>
+          <p>
+            {activeTab === "watchlist"
+              ? "Your watchlist is empty."
+              : "No movies found."}
+          </p>
+        </div>
+      ) : (
+        <div className="movie-grid">
+          {movies.map((movie) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              selectMovie={selectMovie}
+              watchlist={watchlist}
+              toggleWatchlist={toggleWatchlist}
+              selectedMovieId={selectedMovieId}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

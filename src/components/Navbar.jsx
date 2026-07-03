@@ -1,31 +1,43 @@
-function Navbar() {
+function Navbar({ watchlistCount, activeTab, setActiveTab }) {
   return (
-    <nav className="bg-slate-900 shadow-lg">
+    <nav className="navbar">
+      <div className="navbar-inner">
 
-      <div className="max-w-[1700px] mx-auto px-8 h-20 flex justify-between items-center">
+        <div className="navbar-brand">
+          <span className="brand-icon">🎬</span>
+          <span>Movie Database</span>
+        </div>
 
-        <h1 className="text-4xl font-bold text-yellow-400">
-            🎬 MovieDB
-        </h1>
-
-        <ul className="flex gap-10 text-lg font-semibold text-white">
-
-          <li className="cursor-pointer hover:text-yellow-400">
+        <ul className="navbar-links">
+          <li
+            className={activeTab === "browse" ? "active" : ""}
+            onClick={() => setActiveTab("browse")}
+          >
             Browse
           </li>
-
-          <li className="cursor-pointer hover:text-yellow-400">
+          <li
+            className={activeTab === "watchlist" ? "active" : ""}
+            onClick={() => setActiveTab("watchlist")}
+          >
             Watchlist
           </li>
-
-          <li className="cursor-pointer hover:text-yellow-400">
+          <li
+            className={activeTab === "add" ? "active" : ""}
+            onClick={() => setActiveTab("add")}
+          >
             Add Movie
           </li>
-
         </ul>
 
-      </div>
+        <button
+          className="watchlist-badge"
+          onClick={() => setActiveTab("watchlist")}
+        >
+          ❤️ Watchlist
+          <span className="badge-count">{watchlistCount}</span>
+        </button>
 
+      </div>
     </nav>
   );
 }
