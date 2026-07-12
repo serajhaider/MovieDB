@@ -1,16 +1,14 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import initialMovies from "../data/movies";
 
 const MovieContext = createContext();
 
-export function MovieProvider({ children }) {
-  // Load initial movies from localStorage if present, else fallback to initialMovies
-  const [movies, setMovies] = useState(() => {
-    const saved = localStorage.getItem("movies_list");
-    return saved ? JSON.parse(saved) : initialMovies;
-  });
+const API_URL = "http://localhost:5000/api/movies";
 
-  // Watchlist state
+export function MovieProvider({ children }) {
+  // Movies state loaded from API
+  const [movies, setMovies] = useState([]);
+
+  // Watchlist state remains in localStorage
   const [watchlist, setWatchlist] = useState(() => {
     const saved = localStorage.getItem("watchlist_list");
     return saved ? JSON.parse(saved) : [];
@@ -22,37 +20,75 @@ export function MovieProvider({ children }) {
   // Search State
   const [search, setSearch] = useState("");
 
-  // Sync to localStorage
+  // Fetch movies from backend on load
   useEffect(() => {
-    localStorage.setItem("movies_list", JSON.stringify(movies));
-  }, [movies]);
+    const fetchMovies = async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (response.ok) {
+          const data = await response.json();
+          setMovies(data);
+        }
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+      }
+    };
+    fetchMovies();
+  }, []);
 
+  // Sync watchlist to localStorage
   useEffect(() => {
     localStorage.setItem("watchlist_list", JSON.stringify(watchlist));
   }, [watchlist]);
 
-  // Add Movie
-  const addMovie = (movie) => {
-    const newMovie = {
+  // Add Movie to API
+  const addMovie = async (movie) => {
+    const newMovieData = {
       ...movie,
-      id: Date.now(),
       rating: Number(movie.rating) || 0,
       year: Number(movie.year) || new Date().getFullYear(),
       cast: typeof movie.cast === "string" 
         ? movie.cast.split(",").map(c => c.trim()).filter(Boolean)
         : (movie.cast || []),
       poster: movie.poster || "/posters/interstellar.jpg", // default poster
+      watched: false
     };
-    setMovies((prevMovies) => [...prevMovies, newMovie]);
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newMovieData),
+      });
+
+      if (response.ok) {
+        const createdMovie = await response.json();
+        setMovies((prevMovies) => [...prevMovies, createdMovie]);
+      }
+    } catch (error) {
+      console.error("Error adding movie:", error);
+    }
   };
 
-  // Delete Movie
-  const deleteMovie = (id) => {
-    setMovies((prevMovies) => prevMovies.filter((movie) => movie.id !== id));
-    // Also remove from watchlist if it was there
-    setWatchlist((prevWatchlist) => prevWatchlist.filter((movie) => movie.id !== id));
-    if (selectedMovie?.id === id) {
-      setSelectedMovie(null);
+  // Delete Movie from API
+  const deleteMovie = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setMovies((prevMovies) => prevMovies.filter((movie) => movie.id !== id));
+        // Also remove from watchlist if it was there
+        setWatchlist((prevWatchlist) => prevWatchlist.filter((movie) => movie.id !== id));
+        if (selectedMovie?.id === id) {
+          setSelectedMovie(null);
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting movie:", error);
     }
   };
 
