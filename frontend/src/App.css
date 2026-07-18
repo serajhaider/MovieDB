@@ -696,3 +696,149 @@ html.dark .admin-header-badge {
   .stat-card { min-width: 0; flex: 1; padding: 0.7rem 1rem; }
   .add-movie-form { grid-template-columns: 1fr 1fr; }
 }
+
+/* ── Genre Filter Bar ── */
+.genre-filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1.5rem;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+.genre-filter-btn {
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.genre-filter-btn:hover {
+  background: var(--btn-primary);
+  color: #fff;
+  border-color: var(--btn-primary);
+}
+.genre-filter-btn.active {
+  background: var(--btn-primary);
+  color: #fff;
+  border-color: var(--btn-primary);
+}
+
+/* ── Loading / Error States ── */
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1rem;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+.error-state { color: #ef4444; opacity: 1; }
+
+/* ── MovieTask Page ── */
+.movie-task-page { padding: 1.5rem; }
+.movie-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+.movie-header-title { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.movie-header-subtitle { font-size: 0.88rem; color: var(--navbar-text); margin: 0; }
+
+.task-filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.filter-btn {
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: var(--btn-primary);
+  color: #fff;
+  border-color: var(--btn-primary);
+}
+
+.task-list { display: flex; flex-direction: column; gap: 1rem; }
+.task-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  align-items: center;
+}
+.task-poster img { width: 60px; height: 80px; object-fit: cover; border-radius: 6px; }
+.task-info { flex: 1; }
+.task-title { margin: 0 0 0.3rem; font-size: 1rem; font-weight: 600; }
+.task-meta { font-size: 0.78rem; color: var(--navbar-text); margin: 0 0 0.4rem; }
+.task-synopsis { font-size: 0.82rem; opacity: 0.75; margin: 0; }
+.task-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+
+/* ── MovieModal ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal-container {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.modal-title { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.modal-close-btn {
+  background: none; border: none;
+  font-size: 1.1rem; cursor: pointer;
+  color: var(--text-color); opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.modal-close-btn:hover { opacity: 1; }
+
+/* ── MovieForm ── */
+.movie-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+.form-group label { font-size: 0.8rem; font-weight: 600; opacity: 0.75; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.movie-form input,
+.movie-form textarea {
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.movie-form input:focus,
+.movie-form textarea:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}

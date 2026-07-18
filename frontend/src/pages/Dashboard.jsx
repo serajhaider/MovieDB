@@ -7,11 +7,11 @@ function Dashboard() {
   // Statistics calculation
   const total = movies.length;
   const avg = total > 0
-    ? (movies.reduce((sum, m) => sum + Number(m.rating), 0) / total).toFixed(1)
+    ? (movies.reduce((sum, m) => sum + Number(m.avgRating), 0) / total).toFixed(1)
     : 0;
   
   // Find highest rated movie
-  const highest = movies.reduce((max, m) => (Number(m.rating) > Number(max.rating) ? m : max), movies[0] || { title: "N/A", rating: 0 });
+  const highest = movies.reduce((max, m) => (Number(m.avgRating) > Number(max.avgRating) ? m : max), movies[0] || { title: "N/A", avgRating: 0 });
 
   return (
     <div className="admin-dashboard-page">
@@ -30,7 +30,7 @@ function Dashboard() {
         <div className="admin-stat-card bg-purple">
           <h3>Highest Rated</h3>
           <div className="admin-stat-val">{highest.title}</div>
-          <p>Rating: {highest.rating}/10</p>
+          <p>Rating: {highest.avgRating}/10</p>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ function Dashboard() {
                 </tr>
               ) : (
                 movies.map((movie) => (
-                  <tr key={movie.id}>
+                  <tr key={movie._id}>
                     <td className="td-movie-title">
                       <img
                         src={movie.poster}
@@ -79,12 +79,12 @@ function Dashboard() {
                     <td>{movie.director}</td>
                     <td>
                       <span className="table-rating-badge">
-                        ⭐ {movie.rating}
+                        ⭐ {movie.avgRating}
                       </span>
                     </td>
                     <td>
                       <button
-                        onClick={() => deleteMovie(movie.id)}
+                        onClick={() => deleteMovie(movie._id)}
                         className="btn-action-delete"
                         title="Delete Movie"
                       >

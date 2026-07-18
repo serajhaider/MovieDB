@@ -25,7 +25,7 @@ function MovieGrid({ movies, selectMovie, watchlist, toggleWatchlist, activeTab,
         <div className="movie-grid">
           {movies.map((movie) => (
             <MovieCard
-              key={movie.id}
+              key={movie._id}
               movie={movie}
               selectMovie={selectMovie}
               watchlist={watchlist}

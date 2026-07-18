@@ -5,39 +5,39 @@ import SearchBar from "../components/SearchBar";
 import MovieGrid from "../components/MovieGrid";
 import MovieDetail from "../components/MovieDetail";
 
+const GENRES = ["all", "Sci-Fi", "Action", "Adventure", "Crime", "Drama", "Comedy", "Horror", "Romance"];
+
 function Home() {
   const {
     movies,
+    loading,
+    error,
     watchlist,
     selectedMovie,
     setSelectedMovie,
     search,
-    setSearch,
+    activeGenre,
     toggleWatchlist,
+    filterByGenre,
+    searchMovies,
   } = useMovie();
 
   const location = useLocation();
   const isWatchlistPage = location.pathname === "/watchlist";
 
-  // Calculate statistics dynamically
   const [stats, setStats] = useState({ total: 0, averageRating: 0 });
 
   useEffect(() => {
     setStats({
       total: movies.length,
-      averageRating: movies.length > 0
-        ? (movies.reduce((sum, m) => sum + Number(m.rating), 0) / movies.length).toFixed(1)
-        : 0
+      averageRating:
+        movies.length > 0
+          ? (movies.reduce((sum, m) => sum + Number(m.avgRating || 0), 0) / movies.length).toFixed(1)
+          : 0,
     });
   }, [movies]);
 
-  // Search Filter
-  const filteredMovies = movies.filter((movie) =>
-    movie.title.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // Filter displayed movies based on the route path
-  const displayedMovies = isWatchlistPage ? watchlist : filteredMovies;
+  const displayedMovies = isWatchlistPage ? watchlist : movies;
 
   return (
     <div className="home-page-content">
@@ -62,33 +62,57 @@ function Home() {
           </div>
         </div>
 
-        <SearchBar search={search} setSearch={setSearch} />
+        <SearchBar
+          search={search}
+          setSearch={(term) => searchMovies(term)}
+        />
       </div>
+
+      {/* Genre Filter Bar */}
+      {!isWatchlistPage && (
+        <div className="genre-filter-bar">
+          {GENRES.map((genre) => (
+            <button
+              key={genre}
+              className={`genre-filter-btn ${activeGenre === genre ? "active" : ""}`}
+              onClick={() => filterByGenre(genre)}
+            >
+              {genre === "all" ? "🎬 All" : genre}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Loading / Error States */}
+      {loading && <div className="loading-state">⏳ Loading movies...</div>}
+      {error && <div className="error-state">⚠️ {error}</div>}
 
       {/* Main layout: Grid + Detail View */}
-      <div className={`content-layout${selectedMovie ? " has-detail" : ""}`}>
-        <div className="grid-panel">
-          <MovieGrid
-            movies={displayedMovies}
-            selectMovie={setSelectedMovie}
-            watchlist={watchlist}
-            toggleWatchlist={toggleWatchlist}
-            activeTab={isWatchlistPage ? "watchlist" : "browse"}
-            selectedMovieId={selectedMovie?.id}
-          />
-        </div>
-
-        {selectedMovie && (
-          <div className="detail-panel">
-            <MovieDetail
-              movie={selectedMovie}
+      {!loading && !error && (
+        <div className={`content-layout${selectedMovie ? " has-detail" : ""}`}>
+          <div className="grid-panel">
+            <MovieGrid
+              movies={displayedMovies}
+              selectMovie={setSelectedMovie}
               watchlist={watchlist}
               toggleWatchlist={toggleWatchlist}
-              onClose={() => setSelectedMovie(null)}
+              activeTab={isWatchlistPage ? "watchlist" : "browse"}
+              selectedMovieId={selectedMovie?._id}
             />
           </div>
-        )}
-      </div>
+
+          {selectedMovie && (
+            <div className="detail-panel">
+              <MovieDetail
+                movie={selectedMovie}
+                watchlist={watchlist}
+                toggleWatchlist={toggleWatchlist}
+                onClose={() => setSelectedMovie(null)}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

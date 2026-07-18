@@ -1,6 +1,6 @@
 function MovieCard({ movie, selectMovie, watchlist, toggleWatchlist, selectedMovieId }) {
-  const isWatchlisted = watchlist.some((item) => item.id === movie.id);
-  const isSelected = selectedMovieId === movie.id;
+  const isWatchlisted = watchlist.some((item) => item._id === movie._id);
+  const isSelected = selectedMovieId === movie._id;
 
   return (
     <div className={`movie-card${isSelected ? " selected" : ""}`}>
