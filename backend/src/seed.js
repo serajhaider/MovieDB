@@ -70,23 +70,23 @@ const seedMovies = [
 const runSeed = async () => {
     try {
         await mongoose.connect(process.env.MONGO_URI);
-        console.log('✅ Connected to MongoDB for seeding...');
+        console.log('Connected to MongoDB for seeding...');
 
         // Clear existing movies
         await Movie.deleteMany({});
-        console.log('🗑️  Cleared existing movies');
+        console.log('Cleared existing movies');
 
         // Insert seed data
         const inserted = await Movie.insertMany(seedMovies);
-        console.log(`🌱 Seeded ${inserted.length} movies successfully!`);
+        console.log(`Seeded ${inserted.length} movies successfully!`);
 
         inserted.forEach(m => console.log(`   - ${m.title} (${m.year})`));
 
         await mongoose.disconnect();
-        console.log('✅ Disconnected. Seed complete!');
+        console.log('Disconnected. Seed complete!');
         process.exit(0);
     } catch (error) {
-        console.error('❌ Seed Error:', error.message);
+        console.error('Seed Error:', error.message);
         process.exit(1);
     }
 };
