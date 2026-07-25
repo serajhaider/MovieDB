@@ -14,10 +14,15 @@ app.use(express.json());
 
 // Routes
 const MovieRoutes = require('./src/routes/MovieRoutes');
+const AuthRoutes = require('./src/routes/AuthRoutes');
+const UserRoutes = require('./src/routes/UserRoutes');
+
 app.use('/api/movies', MovieRoutes);
+app.use('/api/auth', AuthRoutes);
+app.use('/api/users', UserRoutes);
 
 app.get('/', (req, res) => {
-    res.send('Movie Express + MongoDB Server is running...')
+    res.send('Movie Express + MongoDB Server is running...');
 });
 
 const PORT = process.env.PORT || 5000;

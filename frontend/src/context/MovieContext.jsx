@@ -3,20 +3,39 @@ import axios from "axios";
 
 const MovieContext = createContext();
 
-const API_URL = "http://localhost:5000/api/movies";
+const API_BASE = "http://localhost:5000/api";
+const MOVIES_API = `${API_BASE}/movies`;
+const AUTH_API = `${API_BASE}/auth`;
+const USER_API = `${API_BASE}/users`;
 
 export function MovieProvider({ children }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Genre filter state
+  // Genre & Search states
   const [activeGenre, setActiveGenre] = useState("all");
-
-  // Search state
   const [search, setSearch] = useState("");
 
-  // Watchlist stays in localStorage
+  // Auth States initialized from localStorage
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("user_info");
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem("auth_token") || localStorage.getItem("session_id") || null;
+  });
+
+  const [userId, setUserId] = useState(() => {
+    return localStorage.getItem("user_id") || null;
+  });
+
+  const [sessionId, setSessionId] = useState(() => {
+    return localStorage.getItem("session_id") || null;
+  });
+
+  // Watchlist
   const [watchlist, setWatchlist] = useState(() => {
     const saved = localStorage.getItem("watchlist_list");
     return saved ? JSON.parse(saved) : [];
@@ -24,6 +43,12 @@ export function MovieProvider({ children }) {
 
   // Selected Movie
   const [selectedMovie, setSelectedMovie] = useState(null);
+
+  // Axios config with Auth Header
+  const getAuthHeader = useCallback(() => {
+    const activeToken = token || localStorage.getItem("auth_token") || localStorage.getItem("session_id");
+    return activeToken ? { headers: { Authorization: `Bearer ${activeToken}` } } : {};
+  }, [token]);
 
   // Fetch movies from backend — supports ?genre=Action&search=matrix
   const fetchMovies = useCallback(async (genre = "all", searchTerm = "") => {
@@ -34,7 +59,7 @@ export function MovieProvider({ children }) {
       if (genre && genre !== "all") params.genre = genre;
       if (searchTerm && searchTerm.trim() !== "") params.search = searchTerm.trim();
 
-      const response = await axios.get(API_URL, { params });
+      const response = await axios.get(MOVIES_API, { params });
       setMovies(response.data);
     } catch (err) {
       console.error("Error fetching movies:", err);
@@ -44,17 +69,144 @@ export function MovieProvider({ children }) {
     }
   }, []);
 
+  // Fetch user watchlist from server if logged in
+  const fetchUserWatchlist = useCallback(async () => {
+    const activeToken = token || localStorage.getItem("auth_token");
+    if (!activeToken) return;
+
+    try {
+      const response = await axios.get(`${USER_API}/watchlist`, {
+        headers: { Authorization: `Bearer ${activeToken}` }
+      });
+      if (Array.isArray(response.data)) {
+        setWatchlist(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching user watchlist:", err);
+    }
+  }, [token]);
+
   // Initial load
   useEffect(() => {
     fetchMovies(activeGenre, search);
-  }, []);
+    if (token) {
+      fetchUserWatchlist();
+    }
+  }, [token, fetchMovies, fetchUserWatchlist]);
 
   // Sync watchlist to localStorage
   useEffect(() => {
     localStorage.setItem("watchlist_list", JSON.stringify(watchlist));
   }, [watchlist]);
 
-  // Add Movie via POST
+  // Auth: Login function
+  const login = async (email, password) => {
+    try {
+      const response = await axios.post(`${AUTH_API}/login`, { email, password });
+      const { token: resToken, sessionId: resSessionId, user: resUser, userId: resUserId } = response.data;
+
+      const activeUserId = resUserId || resUser._id || resUser.id;
+      const activeSessionId = resSessionId || resToken;
+
+      // Save user_id and session_id into localStorage as requested
+      localStorage.setItem("user_id", activeUserId);
+      localStorage.setItem("session_id", activeSessionId);
+      localStorage.setItem("auth_token", resToken);
+      localStorage.setItem("user_info", JSON.stringify(resUser));
+
+      setUser(resUser);
+      setToken(resToken);
+      setUserId(activeUserId);
+      setSessionId(activeSessionId);
+
+      if (resUser.watchlist) {
+        setWatchlist(resUser.watchlist);
+      }
+
+      return { success: true, message: response.data.message || "Login successful!", user: resUser };
+    } catch (err) {
+      console.error("Login error:", err);
+      const msg = err.response?.data?.message || "Login failed. Please check your credentials.";
+      return { success: false, message: msg };
+    }
+  };
+
+  // Auth: Register function
+  const register = async (name, email, password) => {
+    try {
+      const response = await axios.post(`${AUTH_API}/register`, { name, email, password });
+      const { token: resToken, sessionId: resSessionId, user: resUser, userId: resUserId } = response.data;
+
+      const activeUserId = resUserId || resUser._id || resUser.id;
+      const activeSessionId = resSessionId || resToken;
+
+      // Save user_id and session_id into localStorage as requested
+      localStorage.setItem("user_id", activeUserId);
+      localStorage.setItem("session_id", activeSessionId);
+      localStorage.setItem("auth_token", resToken);
+      localStorage.setItem("user_info", JSON.stringify(resUser));
+
+      setUser(resUser);
+      setToken(resToken);
+      setUserId(activeUserId);
+      setSessionId(activeSessionId);
+
+      return { success: true, message: response.data.message || "Registration successful!" };
+    } catch (err) {
+      console.error("Register error:", err);
+      const msg = err.response?.data?.message || "Registration failed. Please try again.";
+      return { success: false, message: msg };
+    }
+  };
+
+  // Auth: Logout function
+  const logout = () => {
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("session_id");
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_info");
+
+    setUser(null);
+    setToken(null);
+    setUserId(null);
+    setSessionId(null);
+  };
+
+  // Add Review to Movie and auto-recalculate avgRating
+  const addReview = async (movieId, rating, comment) => {
+    const activeToken = token || localStorage.getItem("auth_token");
+    if (!activeToken) {
+      return { success: false, message: "You must be logged in to submit a review." };
+    }
+
+    try {
+      const response = await axios.post(
+        `${MOVIES_API}/${movieId}/reviews`,
+        { rating, comment },
+        { headers: { Authorization: `Bearer ${activeToken}` } }
+      );
+
+      const updatedMovie = response.data.movie || response.data;
+
+      // Update movies list in context state
+      setMovies((prev) =>
+        prev.map((m) => (m._id === movieId ? updatedMovie : m))
+      );
+
+      // Update currently selected movie if open
+      if (selectedMovie?._id === movieId) {
+        setSelectedMovie(updatedMovie);
+      }
+
+      return { success: true, message: "Review added successfully!" };
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      const msg = err.response?.data?.message || "Failed to submit review.";
+      return { success: false, message: msg };
+    }
+  };
+
+  // Add Movie via POST (Admin)
   const addMovie = async (movie) => {
     try {
       const payload = {
@@ -69,30 +221,50 @@ export function MovieProvider({ children }) {
         watched: false,
       };
 
-      const response = await axios.post(API_URL, payload);
+      const response = await axios.post(MOVIES_API, payload, getAuthHeader());
       setMovies((prev) => [response.data, ...prev]);
     } catch (err) {
       console.error("Error adding movie:", err);
     }
   };
 
-  // Delete Movie via DELETE (uses MongoDB _id)
+  // Delete Movie via DELETE
   const deleteMovie = async (id) => {
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      await axios.delete(`${MOVIES_API}/${id}`, getAuthHeader());
       setMovies((prev) => prev.filter((m) => m._id !== id));
-      setWatchlist((prev) => prev.filter((m) => m._id !== id));
+      setWatchlist((prev) => prev.filter((m) => m._id !== id && m.id !== id));
       if (selectedMovie?._id === id) setSelectedMovie(null);
     } catch (err) {
       console.error("Error deleting movie:", err);
     }
   };
 
-  // Toggle Watchlist
-  const toggleWatchlist = (movie) => {
+  // Toggle Watchlist (syncs with backend if logged in)
+  const toggleWatchlist = async (movie) => {
+    const targetId = movie._id || movie.id;
+    const activeToken = token || localStorage.getItem("auth_token");
+
+    if (activeToken) {
+      try {
+        const response = await axios.post(
+          `${USER_API}/watchlist/toggle/${targetId}`,
+          {},
+          { headers: { Authorization: `Bearer ${activeToken}` } }
+        );
+        if (response.data.watchlist) {
+          setWatchlist(response.data.watchlist);
+          return;
+        }
+      } catch (err) {
+        console.error("Error toggling server watchlist:", err);
+      }
+    }
+
+    // Fallback local toggle
     setWatchlist((prev) => {
-      const exists = prev.find((m) => m._id === movie._id);
-      if (exists) return prev.filter((m) => m._id !== movie._id);
+      const exists = prev.find((m) => (m._id || m.id) === targetId);
+      if (exists) return prev.filter((m) => (m._id || m.id) !== targetId);
       return [...prev, movie];
     });
   };
@@ -124,6 +296,15 @@ export function MovieProvider({ children }) {
         setSearch,
         activeGenre,
         setActiveGenre,
+        user,
+        token,
+        userId,
+        sessionId,
+        isAuthenticated: !!token,
+        login,
+        register,
+        logout,
+        addReview,
         addMovie,
         deleteMovie,
         toggleWatchlist,

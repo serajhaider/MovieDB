@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const MovieController = require('../controllers/MovieController');
+const verifyToken = require('../Middlewares/VerifyToken');
 
 // GET /api/movies?genre=Action&search=matrix
 router.get('/', MovieController.getAllMovies);
@@ -17,7 +18,7 @@ router.put('/:id', MovieController.updateMovie);
 // DELETE /api/movies/:id
 router.delete('/:id', MovieController.deleteMovie);
 
-// POST /api/movies/:id/reviews
-router.post('/:id/reviews', MovieController.addReview);
+// POST /api/movies/:id/reviews (Protected with Auth middleware)
+router.post('/:id/reviews', verifyToken, MovieController.addReview);
 
 module.exports = router;

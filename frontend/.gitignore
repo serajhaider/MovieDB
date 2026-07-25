@@ -24,4 +24,11 @@ dist-ssr
 *.sw?
 
 node_modules/
-.env*
+
+# Environment variables - NEVER commit real .env files
+.env
+.env.local
+.env.development
+.env.production
+# Allow example file to be committed to GitHub
+!.env.example

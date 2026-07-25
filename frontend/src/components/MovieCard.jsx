@@ -1,11 +1,14 @@
 function MovieCard({ movie, selectMovie, watchlist, toggleWatchlist, selectedMovieId }) {
-  const isWatchlisted = watchlist.some((item) => item._id === movie._id);
-  const isSelected = selectedMovieId === movie._id;
+  const targetId = movie._id || movie.id;
+  const isWatchlisted = watchlist.some((item) => (item._id || item.id) === targetId);
+  const isSelected = selectedMovieId === targetId;
+
+  const displayRating = movie.avgRating !== undefined ? movie.avgRating : (movie.rating || 0);
 
   return (
     <div className={`movie-card${isSelected ? " selected" : ""}`}>
 
-      {/* Square poster */}
+      {/* Poster */}
       <div className="movie-poster-wrap" onClick={() => selectMovie(movie)}>
         <img src={movie.poster} alt={movie.title} />
       </div>
@@ -15,7 +18,7 @@ function MovieCard({ movie, selectMovie, watchlist, toggleWatchlist, selectedMov
           {movie.title}
         </div>
         <div className="card-rating">
-          ⭐ {movie.rating}
+          ⭐ {displayRating} / 10
         </div>
         <div className="card-actions">
           <button className="btn-details" onClick={() => selectMovie(movie)}>

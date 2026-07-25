@@ -1,8 +1,21 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, Navigate } from "react-router-dom";
+import { useMovie } from "../context/MovieContext";
 import Footer from "../components/Footer";
 import ThemeToggle from "../components/ThemeToggle";
 
 function AdminLayout() {
+  const { user, isAuthenticated, logout } = useMovie();
+
+  const isAdmin = isAuthenticated && (user?.role === "admin" || user?.email?.toLowerCase().includes("admin"));
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <div className="app-root admin-root">
       <nav className="navbar admin-navbar">
@@ -25,11 +38,25 @@ function AdminLayout() {
             </li>
           </ul>
 
-          <div className="admin-nav-actions">
+          <div className="admin-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <ThemeToggle />
-            <Link to="/login" className="btn-logout">
+            <span className="user-name" style={{ fontWeight: '600', fontSize: '0.9rem', color: '#fff' }}>
+              👑 {user?.name || user?.email}
+            </span>
+            <button
+              onClick={logout}
+              className="btn-logout"
+              style={{
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.3)",
+                color: "#fff",
+                cursor: "pointer",
+                padding: "6px 12px",
+                borderRadius: "6px"
+              }}
+            >
               🚪 Logout
-            </Link>
+            </button>
           </div>
         </div>
       </nav>

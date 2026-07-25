@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useMovie } from "../context/MovieContext";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -7,8 +8,9 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useMovie();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -19,16 +21,23 @@ function Login() {
 
     setLoading(true);
 
-    // Mock authentication transition
-    setTimeout(() => {
-      setLoading(false);
-      // If it is admin credentials, direct to admin
-      if (email.toLowerCase().includes("admin")) {
-        navigate("/admin");
+    try {
+      const result = await login(email, password);
+      if (result.success) {
+        // Use role from server response — not email guessing
+        if (result.user?.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
-        navigate("/");
+        setError(result.message || "Invalid credentials");
       }
-    }, 1000);
+    } catch (err) {
+      setError("Login failed. Please check backend connection.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,7 +46,7 @@ function Login() {
         <div className="auth-header">
           <span className="auth-logo">🎬</span>
           <h2>Welcome Back</h2>
-          <p>Sign in to access your custom watchlists</p>
+          <p>Sign in to post reviews & manage your watchlist</p>
         </div>
 
         {error && <div className="auth-error-alert">⚠️ {error}</div>}
@@ -69,13 +78,6 @@ function Login() {
             />
           </div>
 
-          <div className="auth-options">
-            <label className="remember-me">
-              <input type="checkbox" /> Remember me
-            </label>
-            <a href="#forgot" className="forgot-pass">Forgot Password?</a>
-          </div>
-
           <button
             type="submit"
             className={`btn-auth-submit ${loading ? "loading" : ""}`}
@@ -87,10 +89,6 @@ function Login() {
 
         <div className="auth-footer">
           Don't have an account? <Link to="/register">Register here</Link>
-        </div>
-
-        <div className="auth-hint">
-          💡 Tip: Use email "admin@movie.com" to log in directly to the Admin console!
         </div>
       </div>
     </div>

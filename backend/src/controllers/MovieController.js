@@ -80,22 +80,39 @@ const deleteMovie = async (req, res) => {
     }
 };
 
-// POST /api/movies/:id/reviews
+// POST /api/movies/:id/reviews - Protected (Scoped to logged-in user)
 const addReview = async (req, res) => {
     try {
         const movie = await Movie.findById(req.params.id);
         if (!movie) return res.status(404).json({ message: 'Movie not found' });
 
-        const { user, comment, rating } = req.body;
-        movie.reviews.push({ user, comment, rating });
+        const { rating, comment } = req.body;
+        if (!comment || rating === undefined) {
+            return res.status(400).json({ message: 'Rating and comment are required' });
+        }
 
-        // Recalculate avgRating
-        const totalRatings = movie.reviews.reduce((sum, r) => sum + r.rating, 0);
+        const numRating = Number(rating);
+        if (isNaN(numRating) || numRating < 0 || numRating > 10) {
+            return res.status(400).json({ message: 'Rating must be a number between 0 and 10' });
+        }
+
+        // Scope to logged-in user from req.user
+        const userName = req.user?.name || req.user?.email || 'Authenticated User';
+
+        movie.reviews.push({
+            user: userName,
+            comment: comment.trim(),
+            rating: numRating
+        });
+
+        // Recalculate avgRating whenever a new review is added
+        const totalRatings = movie.reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0);
         movie.avgRating = parseFloat((totalRatings / movie.reviews.length).toFixed(1));
 
         await movie.save();
-        res.status(201).json(movie);
+        res.status(201).json({ message: 'Review added successfully', movie });
     } catch (error) {
+        console.error('Error adding review:', error);
         res.status(500).json({ message: 'Error adding review', error: error.message });
     }
 };

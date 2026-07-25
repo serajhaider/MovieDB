@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useMovie } from "../context/MovieContext";
 
 function Register() {
   const [name, setName] = useState("");
@@ -10,8 +11,9 @@ function Register() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { register } = useMovie();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -33,13 +35,21 @@ function Register() {
 
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      const result = await register(name, email, password);
+      if (result.success) {
+        setSuccess("Account created successfully! Redirecting...");
+        setTimeout(() => {
+          navigate("/");
+        }, 1200);
+      } else {
+        setError(result.message || "Registration failed.");
+      }
+    } catch (err) {
+      setError("Registration failed. Please check backend connection.");
+    } finally {
       setLoading(false);
-      setSuccess("Account created successfully! Redirecting to login...");
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
-    }, 1200);
+    }
   };
 
   return (
@@ -48,7 +58,7 @@ function Register() {
         <div className="auth-header">
           <span className="auth-logo">🎬</span>
           <h2>Create Account</h2>
-          <p>Join us to catalog and curate your favorites</p>
+          <p>Join us to catalog movies and post reviews</p>
         </div>
 
         {error && <div className="auth-error-alert">⚠️ {error}</div>}
