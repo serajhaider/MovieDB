@@ -15,11 +15,10 @@ function Dashboard() {
     showToast,
   } = useMovie();
 
-  const [activeTab, setActiveTab] = useState("catalog"); // 'catalog' | 'users'
+  const [activeTab, setActiveTab] = useState("catalog");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
 
-  // Form fields state
   const [title, setTitle] = useState("");
   const [genre, setGenre] = useState("");
   const [year, setYear] = useState("");
@@ -36,7 +35,6 @@ function Dashboard() {
     }
   }, [activeTab]);
 
-  // Statistics calculation
   const totalMovies = movies.length;
   const avgRating = totalMovies > 0
     ? (movies.reduce((sum, m) => sum + Number(m.avgRating || 0), 0) / totalMovies).toFixed(1)
@@ -102,37 +100,37 @@ function Dashboard() {
 
   return (
     <div className="admin-dashboard-container">
-      
-      {/* Top Admin Navigation Tabs */}
+
+      {/* Admin Navigation Tabs */}
       <div className="admin-tabs-bar">
         <button
           className={`admin-tab-btn ${activeTab === "catalog" ? "active" : ""}`}
           onClick={() => setActiveTab("catalog")}
         >
-          🎬 Catalog Management ({totalMovies})
+          Catalog Management ({totalMovies})
         </button>
 
         <button
           className={`admin-tab-btn ${activeTab === "users" ? "active" : ""}`}
           onClick={() => setActiveTab("users")}
         >
-          👥 User Role Management ({adminUsers.length || "..."})
+          User Role Management ({adminUsers.length || "..."})
         </button>
       </div>
 
       {/* Analytics Summary Cards */}
       <div className="admin-stats-grid">
         <div className="admin-stat-card slate">
-          <span className="stat-icon">🎞️</span>
+          <span className="stat-icon">M</span>
           <div className="stat-content">
             <h3>Total Catalog</h3>
             <div className="stat-value">{totalMovies} Movies</div>
-            <p>Seeded & User-Added Titles</p>
+            <p>Seeded &amp; User-Added Titles</p>
           </div>
         </div>
 
         <div className="admin-stat-card gold">
-          <span className="stat-icon">⭐</span>
+          <span className="stat-icon">R</span>
           <div className="stat-content">
             <h3>Average Score</h3>
             <div className="stat-value">{avgRating} / 10</div>
@@ -141,7 +139,7 @@ function Dashboard() {
         </div>
 
         <div className="admin-stat-card fire">
-          <span className="stat-icon">🔥</span>
+          <span className="stat-icon">F</span>
           <div className="stat-content">
             <h3>Featured Titles</h3>
             <div className="stat-value">{featuredCount} Featured</div>
@@ -158,9 +156,9 @@ function Dashboard() {
               <h2>Catalog Inventory</h2>
               <p>Manage, edit, or delete existing movies in the platform</p>
             </div>
-            
+
             <button className="btn-add-movie-primary" onClick={openAddModal}>
-              ➕ Add New Movie
+              + Add New Movie
             </button>
           </div>
 
@@ -202,7 +200,7 @@ function Dashboard() {
                       <td>{movie.year}</td>
                       <td>{movie.director}</td>
                       <td>
-                        <span className="table-badge rating">⭐ {movie.avgRating || 0}</span>
+                        <span className="table-badge rating">{movie.avgRating || 0}</span>
                       </td>
                       <td>
                         <button
@@ -210,7 +208,7 @@ function Dashboard() {
                           onClick={() => toggleFeaturedMovie(movie)}
                           title="Toggle featured status"
                         >
-                          {movie.featured ? "🔥 Featured" : "☆ Standard"}
+                          {movie.featured ? "Featured" : "Standard"}
                         </button>
                       </td>
                       <td>
@@ -220,14 +218,14 @@ function Dashboard() {
                             onClick={() => openEditModal(movie)}
                             title="Edit Movie"
                           >
-                            ✏️ Edit
+                            Edit
                           </button>
                           <button
                             className="btn-action delete"
                             onClick={() => deleteMovie(movie._id || movie.id)}
                             title="Delete Movie"
                           >
-                            🗑️ Delete
+                            Delete
                           </button>
                         </div>
                       </td>
@@ -245,12 +243,12 @@ function Dashboard() {
         <div className="admin-panel-card">
           <div className="panel-header-flex">
             <div>
-              <h2>Registered Users & Access Roles</h2>
+              <h2>Registered Users &amp; Access Roles</h2>
               <p>Promote users to Administrator or manage accounts</p>
             </div>
-            
+
             <button className="btn-add-movie-primary" onClick={fetchAdminUsers}>
-              🔄 Refresh List
+              Refresh List
             </button>
           </div>
 
@@ -284,7 +282,7 @@ function Dashboard() {
                         <td className="movie-title-cell">
                           <div className="table-user-avatar">
                             {u.avatar ? (
-                              <img src={u.avatar} alt={u.name} className="avatar-img" />
+                              <img src={u.avatar} alt={u.name} className="avatar-img" referrerPolicy="no-referrer" />
                             ) : (
                               (u.name || u.email).charAt(0).toUpperCase()
                             )}
@@ -294,7 +292,7 @@ function Dashboard() {
                         <td>{u.email}</td>
                         <td>
                           <span className={`table-badge ${u.role === 'admin' ? 'admin-role' : 'user-role'}`}>
-                            {u.role === 'admin' ? '👑 Admin' : '👤 User'}
+                            {u.role === 'admin' ? 'Admin' : 'User'}
                           </span>
                         </td>
                         <td>{u.watchlist?.length || 0} movies</td>
@@ -312,7 +310,7 @@ function Dashboard() {
                                 className="btn-action admin-promote"
                                 onClick={() => updateUserRole(u._id, 'admin')}
                               >
-                                👑 Promote to Admin
+                                Promote to Admin
                               </button>
                             )}
 
@@ -320,7 +318,7 @@ function Dashboard() {
                               className="btn-action delete"
                               onClick={() => deleteUser(u._id)}
                             >
-                              🗑️ Remove User
+                              Remove User
                             </button>
                           </div>
                         </td>
@@ -339,8 +337,8 @@ function Dashboard() {
         <div className="admin-modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editingMovie ? "✏️ Edit Movie Entry" : "➕ Add New Movie"}</h3>
-              <button className="close-modal-btn" onClick={() => setIsModalOpen(false)}>✕</button>
+              <h3>{editingMovie ? "Edit Movie Entry" : "Add New Movie"}</h3>
+              <button className="close-modal-btn" onClick={() => setIsModalOpen(false)}>x</button>
             </div>
 
             <form onSubmit={handleFormSubmit} className="admin-modal-form">
@@ -470,7 +468,7 @@ function Dashboard() {
                 >
                   Cancel
                 </button>
-                
+
                 <button type="submit" className="btn-submit-modal">
                   {editingMovie ? "Save Changes" : "Create Movie"}
                 </button>

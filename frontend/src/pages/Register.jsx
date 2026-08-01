@@ -69,13 +69,13 @@ function Register() {
       <div className="auth-card-backdrop"></div>
       <div className="auth-card">
         <div className="auth-header">
-          <div className="auth-logo-badge">🎬</div>
+          <div className="auth-logo-badge">M</div>
           <h2>Create Your Account</h2>
           <p>Join Movie Database to review films, manage your watchlist & explore catalog</p>
         </div>
 
-        {error && <div className="auth-alert error">⚠️ {error}</div>}
-        {success && <div className="auth-alert success">✅ {success}</div>}
+        {error && <div className="auth-alert error">{error}</div>}
+        {success && <div className="auth-alert success">{success}</div>}
 
         {/* Google OAuth Login Button */}
         <button

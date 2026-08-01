@@ -10,7 +10,6 @@ function Navbar() {
   const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
 
-  // Reset imgError whenever user object changes
   useEffect(() => {
     setImgError(false);
   }, [user]);
@@ -28,14 +27,18 @@ function Navbar() {
         {/* Brand Logo */}
         <Link to="/" className="navbar-brand-link">
           <div className="navbar-brand">
-            <span className="brand-icon">🎬</span>
+            <span className="brand-icon">M</span>
             <span className="brand-title">Movie<span className="brand-accent">DB</span></span>
           </div>
         </Link>
 
         {/* Quick Search Input */}
         <form onSubmit={handleSearchSubmit} className="nav-search-form">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </span>
           <input
             type="text"
             placeholder="Search movies, directors..."
@@ -49,7 +52,7 @@ function Navbar() {
               className="clear-search-btn"
               onClick={() => searchMovies("")}
             >
-              ✕
+              x
             </button>
           )}
         </form>
@@ -75,7 +78,7 @@ function Navbar() {
             <NavLink to="/admin" onClick={() => setMobileMenuOpen(false)}>
               {({ isActive }) => (
                 <li className={`admin-nav-item ${isActive ? "active" : ""}`}>
-                  ⚡ Admin Panel
+                  Admin Panel
                 </li>
               )}
             </NavLink>
@@ -118,7 +121,7 @@ function Navbar() {
                 <span className="user-display-name">
                   {user?.name || user?.email?.split('@')[0]}
                 </span>
-                <span className="dropdown-arrow">▾</span>
+                <span className="dropdown-arrow">v</span>
               </button>
 
               {userDropdownOpen && (
@@ -149,17 +152,17 @@ function Navbar() {
                     </div>
 
                     <span className={`role-pill ${isAdmin ? 'admin' : 'user'}`}>
-                      {isAdmin ? '👑 Administrator' : '👤 Member'}
+                      {isAdmin ? 'Administrator' : 'Member'}
                     </span>
                   </div>
                   <hr className="dropdown-divider" />
-                  
+
                   <Link
                     to="/watchlist"
                     className="dropdown-item"
                     onClick={() => setUserDropdownOpen(false)}
                   >
-                    ❤️ My Watchlist ({watchlist.length})
+                    My Watchlist ({watchlist.length})
                   </Link>
 
                   {isAdmin && (
@@ -168,7 +171,7 @@ function Navbar() {
                       className="dropdown-item admin-item"
                       onClick={() => setUserDropdownOpen(false)}
                     >
-                      ⚙️ Admin Console
+                      Admin Console
                     </Link>
                   )}
 
@@ -181,7 +184,7 @@ function Navbar() {
                     }}
                     className="dropdown-item logout-item"
                   >
-                    🚪 Log Out
+                    Log Out
                   </button>
                 </div>
               )}
@@ -194,7 +197,7 @@ function Navbar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            {mobileMenuOpen ? "✕" : "☰"}
+            {mobileMenuOpen ? "x" : "="}
           </button>
         </div>
       </div>

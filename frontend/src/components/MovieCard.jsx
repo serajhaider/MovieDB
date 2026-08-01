@@ -25,26 +25,26 @@ function MovieCard({ movie, selectMovie, selectedMovieId }) {
 
         {/* Featured Tag */}
         {movie.featured && (
-          <div className="featured-badge">🔥 Featured</div>
+          <div className="featured-badge">Featured</div>
         )}
 
         {/* Rating Pill */}
         <div className="rating-pill">
-          ⭐ {displayRating}
+          {displayRating}
         </div>
 
         {/* Overlay hover action */}
         <div className="poster-overlay">
           <button className="btn-overlay-play">
-            ▶ Details
+            Details
           </button>
         </div>
       </div>
 
       {/* Card Content */}
       <div className="card-info-content">
-        <div className="card-genre-tag">{movie.genre} • {movie.year}</div>
-        
+        <div className="card-genre-tag">{movie.genre} &bull; {movie.year}</div>
+
         <h3 className="card-title-text" title={movie.title} onClick={() => selectMovie(movie)}>
           {movie.title}
         </h3>
@@ -58,7 +58,7 @@ function MovieCard({ movie, selectMovie, selectedMovieId }) {
           >
             View Info
           </button>
-          
+
           <button
             className={`btn-card-watchlist ${isWatchlisted ? "remove" : "add"}`}
             onClick={(e) => {
@@ -67,7 +67,7 @@ function MovieCard({ movie, selectMovie, selectedMovieId }) {
             }}
             title={isWatchlisted ? "Remove from Watchlist" : "Add to Watchlist"}
           >
-            {isWatchlisted ? "❤️ Saved" : "+ Watchlist"}
+            {isWatchlisted ? "Saved" : "+ Watchlist"}
           </button>
         </div>
       </div>

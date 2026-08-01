@@ -41,10 +41,10 @@ function MovieDetail({ movie, onClose }) {
   return (
     <div className="movie-detail-overlay" onClick={onClose}>
       <div className="movie-detail-modal" onClick={(e) => e.stopPropagation()}>
-        
+
         {/* Close Button */}
         <button className="detail-close-btn" onClick={onClose} aria-label="Close">
-          ✕
+          x
         </button>
 
         {/* Hero Header Banner */}
@@ -56,15 +56,15 @@ function MovieDetail({ movie, onClose }) {
             onError={(e) => { e.target.src = fallbackPoster; }}
           />
           <div className="hero-gradient-overlay"></div>
-          
+
           <div className="hero-content">
-            {movie.featured && <span className="featured-chip">🔥 Featured Blockbuster</span>}
+            {movie.featured && <span className="featured-chip">Featured Blockbuster</span>}
             <h1 className="hero-title">{movie.title}</h1>
-            
+
             <div className="hero-meta-row">
               <span className="meta-badge genre">{movie.genre}</span>
               <span className="meta-badge year">{movie.year}</span>
-              <span className="meta-badge rating">⭐ {movie.avgRating || movie.rating || 0} / 10</span>
+              <span className="meta-badge rating">{movie.avgRating || movie.rating || 0} / 10</span>
             </div>
           </div>
         </div>
@@ -72,7 +72,7 @@ function MovieDetail({ movie, onClose }) {
         {/* Body Section */}
         <div className="detail-modal-body">
           <div className="detail-grid">
-            
+
             {/* Left Column: Poster + Actions */}
             <div className="detail-left-col">
               <img
@@ -81,18 +81,18 @@ function MovieDetail({ movie, onClose }) {
                 className="detail-poster-img"
                 onError={(e) => { e.target.src = fallbackPoster; }}
               />
-              
+
               <button
                 className={`btn-detail-watchlist ${isWatchlisted ? "remove" : "add"}`}
                 onClick={() => toggleWatchlist(movie)}
               >
-                {isWatchlisted ? "❤️ In Watchlist (Remove)" : "+ Add to Watchlist"}
+                {isWatchlisted ? "In Watchlist (Remove)" : "+ Add to Watchlist"}
               </button>
             </div>
 
             {/* Right Column: Information & Cast */}
             <div className="detail-right-col">
-              
+
               <div className="info-block">
                 <h3>Director</h3>
                 <p className="director-name">{movie.director}</p>
@@ -105,11 +105,11 @@ function MovieDetail({ movie, onClose }) {
 
               {movie.cast && movie.cast.length > 0 && (
                 <div className="info-block">
-                  <h3>Cast & Crew</h3>
+                  <h3>Cast &amp; Crew</h3>
                   <div className="cast-chips-grid">
                     {movie.cast.map((actor, idx) => (
                       <span key={idx} className="cast-chip-tag">
-                        🎭 {actor}
+                        {actor}
                       </span>
                     ))}
                   </div>
@@ -125,7 +125,7 @@ function MovieDetail({ movie, onClose }) {
             <div className="reviews-header">
               <h2>User Reviews ({movie.reviews?.length || 0})</h2>
               <div className="score-summary">
-                Average Rating: <strong>⭐ {movie.avgRating || 0} / 10</strong>
+                Average Rating: <strong>{movie.avgRating || 0} / 10</strong>
               </div>
             </div>
 
@@ -135,8 +135,8 @@ function MovieDetail({ movie, onClose }) {
                 movie.reviews.map((rev, idx) => (
                   <div key={idx} className="review-card-item">
                     <div className="review-card-header">
-                      <span className="reviewer-name">👤 {rev.user || "Anonymous"}</span>
-                      <span className="review-rating-score">⭐ {rev.rating} / 10</span>
+                      <span className="reviewer-name">{rev.user || "Anonymous"}</span>
+                      <span className="review-rating-score">{rev.rating} / 10</span>
                     </div>
                     <p className="review-comment-text">"{rev.comment}"</p>
                   </div>
@@ -151,7 +151,7 @@ function MovieDetail({ movie, onClose }) {
             {/* Add Review Form */}
             {isAuthenticated ? (
               <form onSubmit={handleReviewSubmit} className="add-review-card-form">
-                <h3>✍️ Leave a Review as {user?.name || user?.email}</h3>
+                <h3>Leave a Review as {user?.name || user?.email}</h3>
 
                 {reviewMsg.text && (
                   <div className={`review-alert ${reviewMsg.type}`}>
@@ -171,7 +171,7 @@ function MovieDetail({ movie, onClose }) {
                     onChange={(e) => setRating(e.target.value)}
                     className="rating-slider"
                   />
-                  <span className="rating-slider-value">⭐ {rating} / 10</span>
+                  <span className="rating-slider-value">{rating} / 10</span>
                 </div>
 
                 <div className="form-group">
@@ -195,7 +195,7 @@ function MovieDetail({ movie, onClose }) {
               </form>
             ) : (
               <div className="login-prompt-box">
-                🔒 Want to review this movie? <Link to="/login">Sign in to your account</Link> to rate & comment.
+                Want to review this movie? <Link to="/login">Sign in to your account</Link> to rate &amp; comment.
               </div>
             )}
           </div>

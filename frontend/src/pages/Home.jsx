@@ -25,7 +25,6 @@ function Home() {
   const location = useLocation();
   const isWatchlistPage = location.pathname === "/watchlist";
 
-  // Pick top featured movie for hero spotlight banner
   const heroMovie = useMemo(() => {
     return movies.find((m) => m.featured) || movies[0] || null;
   }, [movies]);
@@ -34,8 +33,8 @@ function Home() {
 
   return (
     <div className="home-page">
-      
-      {/* Hero Banner Section (Only on main Browse page) */}
+
+      {/* Hero Banner Section */}
       {!isWatchlistPage && heroMovie && !search && activeGenre === "all" && (
         <section className="hero-spotlight">
           <div className="hero-bg-wrapper">
@@ -51,19 +50,19 @@ function Home() {
           </div>
 
           <div className="hero-spotlight-content">
-            <span className="hero-tag">🔥 Featured Movie Spotlight</span>
+            <span className="hero-tag">Featured Movie Spotlight</span>
             <h1 className="hero-spotlight-title">{heroMovie.title}</h1>
             <p className="hero-spotlight-meta">
-              ⭐ {heroMovie.avgRating || 8.5}/10 &nbsp;•&nbsp; {heroMovie.genre} &nbsp;•&nbsp; {heroMovie.year} &nbsp;•&nbsp; Dir. {heroMovie.director}
+              {heroMovie.avgRating || 8.5}/10 &nbsp;&bull;&nbsp; {heroMovie.genre} &nbsp;&bull;&nbsp; {heroMovie.year} &nbsp;&bull;&nbsp; Dir. {heroMovie.director}
             </p>
             <p className="hero-spotlight-synopsis">{heroMovie.synopsis}</p>
-            
+
             <div className="hero-spotlight-actions">
               <button
                 className="btn-hero-watch"
                 onClick={() => setSelectedMovie(heroMovie)}
               >
-                ▶ Explore Details
+                Explore Details
               </button>
             </div>
           </div>
@@ -72,17 +71,16 @@ function Home() {
 
       {/* Main Container */}
       <div className="home-container">
-        
+
         {/* Section Header & Filters Bar */}
         <div className="filter-header-bar">
           <div className="header-title-box">
-            <h2>{isWatchlistPage ? "❤️ My Watchlist" : "🎬 Explore Movies"}</h2>
+            <h2>{isWatchlistPage ? "My Watchlist" : "Explore Movies"}</h2>
             <span className="count-pill">{displayedMovies.length} Titles</span>
           </div>
 
           {!isWatchlistPage && (
             <div className="filter-controls-right">
-              {/* Sort By Dropdown */}
               <div className="sort-selector-box">
                 <label htmlFor="sort-select">Sort By:</label>
                 <select
@@ -91,9 +89,9 @@ function Home() {
                   onChange={(e) => sortMovies(e.target.value)}
                   className="sort-dropdown"
                 >
-                  <option value="rating">Highest Rating ⭐</option>
-                  <option value="year">Latest Release Year 📅</option>
-                  <option value="title">Title (A-Z) 🔤</option>
+                  <option value="rating">Highest Rating</option>
+                  <option value="year">Latest Release Year</option>
+                  <option value="title">Title (A-Z)</option>
                 </select>
               </div>
             </div>
@@ -109,16 +107,16 @@ function Home() {
                 className={`genre-pill-btn ${activeGenre === genre ? "active" : ""}`}
                 onClick={() => filterByGenre(genre)}
               >
-                {genre === "all" ? "🎬 All Genres" : genre}
+                {genre === "all" ? "All Genres" : genre}
               </button>
             ))}
           </div>
         )}
 
-        {/* Search status query bar */}
+        {/* Search status bar */}
         {search && (
           <div className="search-status-bar">
-            <span>Showing search results for: <strong>"{search}"</strong></span>
+            <span>Showing results for: <strong>"{search}"</strong></span>
             <button className="btn-clear-search" onClick={() => searchMovies("")}>Clear Search</button>
           </div>
         )}
@@ -133,7 +131,7 @@ function Home() {
 
         {error && !loading && (
           <div className="state-card error">
-            <p>⚠️ {error}</p>
+            <p>{error}</p>
           </div>
         )}
 
@@ -141,7 +139,7 @@ function Home() {
         {!loading && !error && (
           displayedMovies.length === 0 ? (
             <div className="empty-catalog-card">
-              <div className="empty-icon">{isWatchlistPage ? "❤️" : "🔍"}</div>
+              <div className="empty-icon">{isWatchlistPage ? "♥" : "?"}</div>
               <h3>{isWatchlistPage ? "Your Watchlist is Empty" : "No Movies Found"}</h3>
               <p>
                 {isWatchlistPage
@@ -169,7 +167,7 @@ function Home() {
         )}
       </div>
 
-      {/* Movie Details Modal Overlay */}
+      {/* Movie Details Modal */}
       {selectedMovie && (
         <MovieDetail
           movie={selectedMovie}
