@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const reviewSchema = new mongoose.Schema({
     user: { type: String, default: 'Anonymous' },
     comment: { type: String, required: true },
-    rating: { type: Number, min: 0, max: 10, default: 5 }
-}, { _id: false });
+    rating: { type: Number, min: 0, max: 10, default: 5 },
+    createdAt: { type: Date, default: Date.now }
+}, { _id: true });
 
 const MovieSchema = new mongoose.Schema({
     title: {
@@ -48,9 +49,13 @@ const MovieSchema = new mongoose.Schema({
     },
     poster: {
         type: String,
-        default: '/posters/interstellar.jpg'
+        default: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80'
     },
     watched: {
+        type: Boolean,
+        default: false
+    },
+    featured: {
         type: Boolean,
         default: false
     }
@@ -58,8 +63,8 @@ const MovieSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Text index for search by title and synopsis
-MovieSchema.index({ title: 'text', synopsis: 'text' });
+// Text index for search by title, genre, director, synopsis
+MovieSchema.index({ title: 'text', synopsis: 'text', director: 'text', genre: 'text' });
 
 const Movie = mongoose.model('Movie', MovieSchema);
 

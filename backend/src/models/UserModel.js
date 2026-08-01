@@ -15,7 +15,18 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Password is required']
+        required: [
+            function() { return !this.googleId; },
+            'Password is required for local authentication'
+        ]
+    },
+    googleId: {
+        type: String,
+        default: ''
+    },
+    avatar: {
+        type: String,
+        default: ''
     },
     watchlist: [
         {

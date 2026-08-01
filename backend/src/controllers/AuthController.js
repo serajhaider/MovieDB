@@ -1,13 +1,33 @@
 const User = require('../models/UserModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const passport = require('passport');
+
+// Generate JWT token helper
+const generateToken = (user) => {
+    return jwt.sign(
+        { 
+            id: user._id, 
+            email: user.email, 
+            name: user.name, 
+            role: user.role,
+            avatar: user.avatar || ''
+        },
+        process.env.JWT_SECRET || 'secretkey',
+        { expiresIn: '7d' }
+    );
+};
+
+// Helper for default user avatar
+const getDefaultAvatar = (name) => {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=e50914&color=fff&bold=true`;
+};
 
 // Register new user
 const registerUser = async (req, res) => {
     try {
-        const { name, first_name, last_name, email, password } = req.body;
+        const { name, first_name, last_name, email, password, avatar } = req.body;
 
-        // Construct full name if first_name / last_name provided
         const fullName = (name || `${first_name || ''} ${last_name || ''}`).trim();
 
         if (!fullName || !email || !password) {
@@ -15,35 +35,36 @@ const registerUser = async (req, res) => {
         }
 
         if (password.length < 6) {
-            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+            return res.status(400).json({ message: 'Password must be at least 6 characters long' });
         }
 
-        const existingUser = await User.findOne({ email: email.toLowerCase() });
+        const normalizedEmail = email.toLowerCase().trim();
+        const existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) {
             return res.status(400).json({ message: 'User with this email already exists' });
         }
 
-        const role = email.toLowerCase().includes('admin') ? 'admin' : 'user';
+        const role = normalizedEmail.includes('admin') ? 'admin' : 'user';
         const hashedPassword = await bcrypt.hash(password, 10);
+        const userAvatar = avatar || getDefaultAvatar(fullName);
+        
         const newUser = await User.create({
             name: fullName,
-            email: email.toLowerCase(),
+            email: normalizedEmail,
             password: hashedPassword,
+            avatar: userAvatar,
             role,
             watchlist: []
         });
 
-        const token = jwt.sign(
-            { id: newUser._id, email: newUser.email, name: newUser.name, role: newUser.role },
-            process.env.JWT_SECRET || 'secretkey',
-            { expiresIn: '7d' }
-        );
+        const token = generateToken(newUser);
 
         const userResponse = {
             _id: newUser._id,
             id: newUser._id,
             name: newUser.name,
             email: newUser.email,
+            avatar: newUser.avatar,
             role: newUser.role,
             watchlist: newUser.watchlist
         };
@@ -71,9 +92,14 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Email and password are required' });
         }
 
-        const user = await User.findOne({ email: email.toLowerCase() });
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
             return res.status(400).json({ message: 'Invalid email or password' });
+        }
+
+        if (!user.password && user.googleId) {
+            return res.status(400).json({ message: 'This account uses Google Sign-In. Please sign in with Google.' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -81,17 +107,20 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
-        const token = jwt.sign(
-            { id: user._id, email: user.email, name: user.name, role: user.role },
-            process.env.JWT_SECRET || 'secretkey',
-            { expiresIn: '7d' }
-        );
+        // Set default avatar if user doesn't have one
+        if (!user.avatar) {
+            user.avatar = getDefaultAvatar(user.name);
+            await user.save();
+        }
+
+        const token = generateToken(user);
 
         const userResponse = {
             _id: user._id,
             id: user._id,
             name: user.name,
             email: user.email,
+            avatar: user.avatar,
             role: user.role,
             watchlist: user.watchlist
         };
@@ -117,34 +146,77 @@ const getMe = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
+
+        if (!user.avatar) {
+            user.avatar = getDefaultAvatar(user.name);
+            await user.save();
+        }
+
         res.status(200).json({ user });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching user profile', error: error.message });
     }
 };
 
-// Google OAuth Trigger endpoint
-const googleLogin = async (req, res) => {
+// Update profile information (Name, Avatar)
+const updateProfile = async (req, res) => {
     try {
-        if (process.env.GOOGLE_CLIENT_ID) {
-            const redirectUri = encodeURIComponent(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/google/callback`);
-            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile`;
-            return res.redirect(googleAuthUrl);
+        const { name, avatar } = req.body;
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
 
+        if (name && name.trim()) user.name = name.trim();
+        if (avatar !== undefined) user.avatar = avatar || getDefaultAvatar(user.name);
+
+        await user.save();
+
+        const updatedUser = {
+            _id: user._id,
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+            role: user.role,
+            watchlist: user.watchlist
+        };
+
         res.status(200).json({
-            message: 'Google OAuth trigger endpoint active',
-            authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-            status: 'OAuth Basics Endpoint Ready'
+            message: 'Profile updated successfully',
+            user: updatedUser
         });
     } catch (error) {
-        res.status(500).json({ message: 'Google login trigger error', error: error.message });
+        res.status(500).json({ message: 'Error updating profile', error: error.message });
     }
+};
+
+// Google OAuth Trigger endpoint
+const googleLogin = (req, res, next) => {
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+};
+
+// Google OAuth Callback endpoint
+const googleCallback = (req, res, next) => {
+    passport.authenticate('google', { session: false }, (err, user) => {
+        const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+        
+        if (err || !user) {
+            console.error('Google Auth Error:', err);
+            return res.redirect(`${frontendUrl}/login?error=Google%20Authentication%20Failed`);
+        }
+
+        const token = generateToken(user);
+        const targetPath = user.role === 'admin' ? '/admin' : '/';
+        res.redirect(`${frontendUrl}${targetPath}?token=${token}`);
+    })(req, res, next);
 };
 
 module.exports = {
     registerUser,
     loginUser,
     getMe,
-    googleLogin
+    updateProfile,
+    googleLogin,
+    googleCallback
 };

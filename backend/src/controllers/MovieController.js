@@ -1,22 +1,43 @@
 const Movie = require('../models/MovieModel');
 
-// GET /api/movies?genre=Action&search=matrix
+// GET /api/movies?genre=Action&search=matrix&sortBy=rating&featured=true
 const getAllMovies = async (req, res) => {
     try {
-        const { genre, search } = req.query;
+        const { genre, search, sortBy, featured } = req.query;
         let query = {};
 
         // Filter by genre
         if (genre && genre !== 'all') {
-            query.genre = { $regex: new RegExp(`^${genre}$`, 'i') };
+            query.genre = { $regex: new RegExp(`^${genre.trim()}$`, 'i') };
         }
 
-        // Text search by title (case-insensitive)
+        // Search by title, director, or synopsis
         if (search && search.trim() !== '') {
-            query.title = { $regex: new RegExp(search.trim(), 'i') };
+            const searchRegex = new RegExp(search.trim(), 'i');
+            query.$or = [
+                { title: searchRegex },
+                { director: searchRegex },
+                { synopsis: searchRegex },
+                { genre: searchRegex }
+            ];
         }
 
-        const movies = await Movie.find(query).sort({ createdAt: -1 });
+        // Filter featured movies
+        if (featured === 'true') {
+            query.featured = true;
+        }
+
+        // Sort configuration
+        let sortOption = { createdAt: -1 };
+        if (sortBy === 'rating') {
+            sortOption = { avgRating: -1 };
+        } else if (sortBy === 'year') {
+            sortOption = { year: -1 };
+        } else if (sortBy === 'title') {
+            sortOption = { title: 1 };
+        }
+
+        const movies = await Movie.find(query).sort(sortOption);
         res.status(200).json(movies);
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving movies', error: error.message });
@@ -37,10 +58,31 @@ const getMovieById = async (req, res) => {
     }
 };
 
-// POST /api/movies
+// POST /api/movies - Admin
 const createMovie = async (req, res) => {
     try {
-        const newMovie = new Movie(req.body);
+        const { title, genre, year, director, synopsis, avgRating, rating, cast, poster, featured } = req.body;
+
+        if (!title || !genre || !year || !director) {
+            return res.status(400).json({ message: 'Title, genre, year, and director are required fields' });
+        }
+
+        const movieData = {
+            title: title.trim(),
+            genre: genre.trim(),
+            year: Number(year),
+            director: director.trim(),
+            synopsis: synopsis ? synopsis.trim() : '',
+            avgRating: Number(avgRating || rating || 5),
+            cast: Array.isArray(cast) 
+                ? cast 
+                : (cast ? cast.split(',').map(c => c.trim()).filter(Boolean) : []),
+            poster: poster || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
+            featured: Boolean(featured),
+            reviews: []
+        };
+
+        const newMovie = new Movie(movieData);
         const savedMovie = await newMovie.save();
         res.status(201).json(savedMovie);
     } catch (error) {
@@ -48,12 +90,17 @@ const createMovie = async (req, res) => {
     }
 };
 
-// PUT /api/movies/:id
+// PUT /api/movies/:id - Admin
 const updateMovie = async (req, res) => {
     try {
+        const updateData = { ...req.body };
+        if (typeof updateData.cast === 'string') {
+            updateData.cast = updateData.cast.split(',').map(c => c.trim()).filter(Boolean);
+        }
+
         const updatedMovie = await Movie.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         );
         if (updatedMovie) {
@@ -66,7 +113,7 @@ const updateMovie = async (req, res) => {
     }
 };
 
-// DELETE /api/movies/:id
+// DELETE /api/movies/:id - Admin
 const deleteMovie = async (req, res) => {
     try {
         const deletedMovie = await Movie.findByIdAndDelete(req.params.id);
@@ -96,16 +143,16 @@ const addReview = async (req, res) => {
             return res.status(400).json({ message: 'Rating must be a number between 0 and 10' });
         }
 
-        // Scope to logged-in user from req.user
         const userName = req.user?.name || req.user?.email || 'Authenticated User';
 
         movie.reviews.push({
             user: userName,
             comment: comment.trim(),
-            rating: numRating
+            rating: numRating,
+            createdAt: new Date()
         });
 
-        // Recalculate avgRating whenever a new review is added
+        // Recalculate avgRating
         const totalRatings = movie.reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0);
         movie.avgRating = parseFloat((totalRatings / movie.reviews.length).toFixed(1));
 
