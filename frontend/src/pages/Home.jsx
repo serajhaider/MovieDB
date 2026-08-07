@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useMovie } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
@@ -35,7 +35,7 @@ function Home() {
   return (
     <div className="home-page">
 
-      {/* Hero Banner Section */}
+      {/* Hero Banner Section — only on browse page */}
       {!isWatchlistPage && heroMovie && !search && activeGenre === "all" && (
         <section className="hero-spotlight">
           <div className="hero-bg-wrapper">
@@ -72,6 +72,11 @@ function Home() {
 
       {/* Main Container */}
       <div className="home-container">
+
+        {/* AI Recommender panel — ONLY on Watchlist page, at the top */}
+        {isWatchlistPage && (
+          <AIRecommender watchlist={watchlist} />
+        )}
 
         {/* Section Header & Filters Bar */}
         <div className="filter-header-bar">
@@ -136,14 +141,7 @@ function Home() {
           </div>
         )}
 
-      {/* AI Recommender panel — only on watchlist page */}
-      {isWatchlistPage && (
-        <div className="home-container" style={{ marginTop: 0, paddingTop: 0 }}>
-          <AIRecommender watchlist={watchlist} />
-        </div>
-      )}
-
-      {/* Movie Grid */}
+        {/* Movie Grid */}
         {!loading && !error && (
           displayedMovies.length === 0 ? (
             <div className="empty-catalog-card">
