@@ -37,10 +37,25 @@ function AIRecommender({ watchlist }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setRecommendations(response.data.recommendations || []);
+      if (response.data.success === false) {
+        setError(response.data.message);
+        setRecommendations([]);
+      } else {
+        setRecommendations(response.data.recommendations || []);
+      }
     } catch (err) {
       console.error("AI Recommendation Error:", err);
-      const msg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to get recommendations.";
+      const status = err.response?.status;
+      let msg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to get recommendations.";
+
+      if (status === 401 || status === 403) {
+        msg = "Authentication expired. Please sign in again.";
+      } else if (status === 429) {
+        msg = "AI recommendation rate limit reached. Please wait a moment and try again.";
+      } else if (status === 503) {
+        msg = "AI recommendation service is not configured on Render. Please verify GEMINI_API_KEY.";
+      }
+
       setError(msg);
     } finally {
       setLoading(false);
@@ -94,7 +109,7 @@ function AIRecommender({ watchlist }) {
       {/* Error State */}
       {error && (
         <div className="ai-error-card">
-          <strong>Error:</strong> {error}
+          <strong>Notice:</strong> {error}
         </div>
       )}
 
