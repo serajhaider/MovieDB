@@ -12,13 +12,31 @@ if (!apiKey || apiKey === 'your_gemini_api_key_here') {
 }
 
 /**
- * Generic content generator - mirrors teacher's generateContent pattern
+ * Generic content generator with automatic model fallback
  */
 async function generateContent(prompt) {
     if (!genAI) throw new Error('GEMINI_API_KEY is not configured.');
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+
+    const candidateModels = [
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-pro',
+        'gemini-pro'
+    ];
+
+    let lastError = null;
+    for (const modelName of candidateModels) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent(prompt);
+            return result.response.text();
+        } catch (err) {
+            console.warn(`Gemini model ${modelName} attempt failed:`, err.message);
+            lastError = err;
+        }
+    }
+    throw lastError || new Error('Failed to generate content from Gemini API.');
 }
 
 /**
@@ -61,7 +79,20 @@ Return ONLY the JSON array, no markdown, no extra text.`;
 
     // Strip markdown code fences if Gemini adds them
     const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const recommendations = JSON.parse(cleaned);
+    
+    let recommendations = [];
+    try {
+        recommendations = JSON.parse(cleaned);
+    } catch (parseErr) {
+        console.error('Failed to parse Gemini JSON output:', cleaned);
+        // Fallback array if JSON format had extra text
+        const jsonMatch = cleaned.match(/\[\s*\{.*\}\s*\]/s);
+        if (jsonMatch) {
+            recommendations = JSON.parse(jsonMatch[0]);
+        } else {
+            throw new Error('Gemini output could not be parsed as JSON array.');
+        }
+    }
 
     // Enrich recommendations with full movie data from catalog
     const enriched = recommendations.map(rec => {
