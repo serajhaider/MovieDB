@@ -42,10 +42,12 @@ app.use(passport.initialize());
 const MovieRoutes = require('./src/routes/MovieRoutes');
 const AuthRoutes = require('./src/routes/AuthRoutes');
 const UserRoutes = require('./src/routes/UserRoutes');
+const AIRoutes = require('./src/routes/AIRoutes');
 
 app.use('/api/movies', MovieRoutes);
 app.use('/api/auth', AuthRoutes);
 app.use('/api/users', UserRoutes);
+app.use('/api/ai', AIRoutes);
 
 // Base Health Check
 app.get('/', (req, res) => {

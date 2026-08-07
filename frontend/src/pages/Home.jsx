@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useMovie } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import MovieDetail from "../components/MovieDetail";
+import AIRecommender from "../components/AIRecommender";
 
 const GENRES = ["all", "Sci-Fi", "Action", "Adventure", "Drama", "Crime", "Romance", "Comedy"];
 
@@ -135,7 +136,14 @@ function Home() {
           </div>
         )}
 
-        {/* Movie Grid */}
+      {/* AI Recommender panel — only on watchlist page */}
+      {isWatchlistPage && (
+        <div className="home-container" style={{ marginTop: 0, paddingTop: 0 }}>
+          <AIRecommender watchlist={watchlist} />
+        </div>
+      )}
+
+      {/* Movie Grid */}
         {!loading && !error && (
           displayedMovies.length === 0 ? (
             <div className="empty-catalog-card">
