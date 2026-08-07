@@ -29,6 +29,6 @@ node_modules/
 .env
 .env.local
 .env.development
-.env.production
-# Allow example file to be committed to GitHub
+# Allow example and production env files to be committed to GitHub
 !.env.example
+!.env.production
