@@ -27,27 +27,27 @@ function AIRecommender({ watchlist }) {
     setError(null);
     setHasRun(true);
 
-    // Extract genres from watchlist (teacher pattern: summarizeTask approach)
+    // Extract genres from watchlist
     const favouriteGenres = [...new Set(watchlist.map(m => m.genre).filter(Boolean))];
 
     try {
       const response = await axios.post(
         `${AI_API}/recommend`,
-        { favouriteGenres },
+        { favouriteGenres, watchlist },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setRecommendations(response.data.recommendations || []);
     } catch (err) {
       console.error("AI Recommendation Error:", err);
-      const msg = err.response?.data?.error || err.response?.data?.message || err.message || "Failed to get recommendations.";
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to get recommendations.";
       setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Teacher's summarizeTask pattern adapted for movie detail expansion
+  // Teacher's summarizeTask pattern
   const expandMovie = async (idx) => {
     setLoadingTaskId(idx);
     try {

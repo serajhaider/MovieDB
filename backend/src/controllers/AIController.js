@@ -8,12 +8,24 @@ const User = require('../models/UserModel');
  */
 const getRecommendations = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user?.id || req.user?._id;
+        let watchlistToUse = [];
 
-        // Fetch user's watchlist from DB
-        const user = await User.findById(userId).populate('watchlist');
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+        // Try finding user in DB
+        if (userId) {
+            try {
+                const user = await User.findById(userId).populate('watchlist');
+                if (user && user.watchlist) {
+                    watchlistToUse = user.watchlist;
+                }
+            } catch (uErr) {
+                console.warn('User lookup warning:', uErr.message);
+            }
+        }
+
+        // Fallback to request body watchlist if user DB watchlist is empty
+        if (watchlistToUse.length === 0 && req.body.watchlist) {
+            watchlistToUse = req.body.watchlist;
         }
 
         // Fetch all movies from catalog to pass to Gemini
@@ -23,13 +35,13 @@ const getRecommendations = async (req, res) => {
             return res.status(400).json({ message: 'No movies in catalog to recommend from.' });
         }
 
-        // Use genres from request body, or extract from watchlist
+        // Extract genres from request body or watchlist
         const { favouriteGenres } = req.body;
         const genresToUse = (favouriteGenres && favouriteGenres.length > 0)
             ? favouriteGenres
-            : [...new Set(user.watchlist.map(m => m.genre).filter(Boolean))];
+            : [...new Set(watchlistToUse.map(m => m.genre).filter(Boolean))];
 
-        const recommendations = await recommendMovies(user.watchlist, genresToUse, allMovies);
+        const recommendations = await recommendMovies(watchlistToUse, genresToUse, allMovies);
 
         res.status(200).json({
             message: 'AI recommendations generated successfully',
@@ -37,7 +49,7 @@ const getRecommendations = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('AI Recommendation Error:', error);
+        console.error('AI Recommendation Error:', error.stack || error.message);
 
         res.status(500).json({
             message: error.message || 'Failed to generate AI recommendations.',
