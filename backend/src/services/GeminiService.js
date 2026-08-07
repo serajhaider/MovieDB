@@ -1,21 +1,22 @@
 require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const apiKey = process.env.GEMINI_API_KEY;
-
-let genAI = null;
-
-if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-    console.warn('WARNING: GEMINI_API_KEY is not set. AI recommendations will not work.');
-} else {
-    genAI = new GoogleGenerativeAI(apiKey);
+/**
+ * Get GoogleGenerativeAI instance dynamically from process.env
+ */
+function getGenAI() {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+        throw new Error('GEMINI_API_KEY is not configured in environment variables.');
+    }
+    return new GoogleGenerativeAI(apiKey.trim());
 }
 
 /**
  * Generic content generator with automatic model fallback
  */
 async function generateContent(prompt) {
-    if (!genAI) throw new Error('GEMINI_API_KEY is not configured.');
+    const genAI = getGenAI();
 
     const candidateModels = [
         'gemini-2.5-flash',
@@ -44,8 +45,6 @@ async function generateContent(prompt) {
  * Sends watchlist + genres to Gemini and returns 3 JSON recommendations
  */
 async function recommendMovies(watchlist, favouriteGenres, allMovies) {
-    if (!genAI) throw new Error('GEMINI_API_KEY is not configured.');
-
     const watchlistTitles = watchlist.map(m => m.title || m).join(', ') || 'No movies in watchlist yet';
     const genreList = favouriteGenres.length > 0 ? favouriteGenres.join(', ') : 'Action, Drama';
     const catalogTitles = allMovies.map(m => `${m.title} (${m.genre}, ${m.year}, Rating: ${m.avgRating || m.rating || 'N/A'})`).join('\n');
@@ -85,7 +84,6 @@ Return ONLY the JSON array, no markdown, no extra text.`;
         recommendations = JSON.parse(cleaned);
     } catch (parseErr) {
         console.error('Failed to parse Gemini JSON output:', cleaned);
-        // Fallback array if JSON format had extra text
         const jsonMatch = cleaned.match(/\[\s*\{.*\}\s*\]/s);
         if (jsonMatch) {
             recommendations = JSON.parse(jsonMatch[0]);

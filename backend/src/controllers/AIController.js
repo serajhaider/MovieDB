@@ -37,17 +37,10 @@ const getRecommendations = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('AI Recommendation Error:', error.message);
-
-        if (error.message.includes('GEMINI_API_KEY')) {
-            return res.status(503).json({
-                message: 'AI service is not configured. Please add your GEMINI_API_KEY.',
-                error: error.message
-            });
-        }
+        console.error('AI Recommendation Error:', error);
 
         res.status(500).json({
-            message: 'Failed to generate AI recommendations.',
+            message: error.message || 'Failed to generate AI recommendations.',
             error: error.message
         });
     }

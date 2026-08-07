@@ -40,7 +40,7 @@ function AIRecommender({ watchlist }) {
       setRecommendations(response.data.recommendations || []);
     } catch (err) {
       console.error("AI Recommendation Error:", err);
-      const msg = err.response?.data?.message || "Failed to get recommendations. Make sure your GEMINI_API_KEY is set.";
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message || "Failed to get recommendations.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -51,7 +51,6 @@ function AIRecommender({ watchlist }) {
   const expandMovie = async (idx) => {
     setLoadingTaskId(idx);
     try {
-      // We already have the data, just simulate the teacher's pattern
       setSummaries(prev => ({
         ...prev,
         [idx]: recommendations[idx]?.reason
